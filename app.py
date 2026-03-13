@@ -187,8 +187,8 @@ with st.sidebar:
     st.divider()
     st.caption(
         "Built from scratch · "
-        "[GitHub](https://github.com) · "
-        "[HF Spaces](https://huggingface.co/spaces)"
+        "[GitHub](https://github.com/Archit-Konde/RAG) · "
+        "[HF Spaces](https://huggingface.co/spaces/Archit-Konde/RAG)"
     )
 
 # ---------------------------------------------------------------------------
