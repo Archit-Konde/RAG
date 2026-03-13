@@ -1,6 +1,6 @@
 ---
 title: RAG Pipeline Demo
-emoji: 📚
+emoji: 🔍
 colorFrom: blue
 colorTo: indigo
 sdk: streamlit

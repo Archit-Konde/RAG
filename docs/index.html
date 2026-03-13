@@ -748,8 +748,13 @@
         return;
       }
 
-      if (qLower === 'boom') {
-        filtered = [{ icon: '[!]', label: 'Self destruct in 3... 2... 1...', hint: 'rm -rf /', action: function() { document.body.style.filter = 'invert(1) blur(10px)'; setTimeout(function() { window.location.reload(); }, 1000); } }];
+      if (qLower === 'reboot') {
+        filtered = [{ icon: '[!]', label: 'Rebooting system...', hint: 'shutdown -r now', action: function() {
+          close();
+          document.body.style.transition = 'opacity 0.4s';
+          document.body.style.opacity = '0';
+          setTimeout(function() { sessionStorage.removeItem('boot-seen'); window.location.reload(); }, 500);
+        } }];
         activeIdx = 0;
         render();
         return;
