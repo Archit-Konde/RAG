@@ -450,6 +450,24 @@
       .proj-title { font-size: 1.3rem; }
       .boot-body { padding: 1.2rem; }
     }
+
+    /* ── Matrix Theme Easter Egg ── */
+    body.matrix-theme {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --text: #00ff41;
+      --accent: #00ff41;
+      --muted: #008f11;
+      --border: #003b00;
+    }
+    body.matrix-theme * {
+      text-shadow: 0 0 5px rgba(0, 255, 65, 0.4);
+    }
+    body.matrix-theme .cmd-palette,
+    body.matrix-theme .cmd-modal {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+    }
   </style>
 </head>
 <body>
@@ -643,9 +661,9 @@
     var COMMANDS = [
       { icon: '\u2192', label: 'Launch live demo', hint: 'HuggingFace Spaces', action: function() { window.open('https://huggingface.co/spaces/architechs/RAG', '_blank'); } },
       { icon: './', label: 'View source on GitHub', hint: 'github.com', action: function() { window.open('https://github.com/Archit-Konde/RAG', '_blank'); } },
-      { icon: '\ud83d\udcdd', label: 'Read the writeup', hint: 'blog', action: function() { window.location.href = 'https://archit-konde.github.io/pages/blog/rag-from-scratch.html'; } },
+      { icon: '>_', label: 'Read the writeup', hint: 'blog', action: function() { window.location.href = 'https://archit-konde.github.io/pages/blog/rag-from-scratch.html'; } },
       { icon: '\u2190', label: 'Back to portfolio', hint: 'archit-konde.github.io', action: function() { window.location.href = 'https://archit-konde.github.io/'; } },
-      { icon: '\ud83d\udcd6', label: 'Read LEARNING.md', hint: 'math derivations', action: function() { window.open('https://github.com/Archit-Konde/RAG/blob/master/docs/LEARNING.md', '_blank'); } },
+      { icon: '[]', label: 'Read LEARNING.md', hint: 'math derivations', action: function() { window.open('https://github.com/Archit-Konde/RAG/blob/master/docs/LEARNING.md', '_blank'); } },
       { icon: '#', label: 'View tech stack', hint: 'scroll', action: function() { document.querySelector('.tech-row').scrollIntoView({ behavior: 'smooth' }); } }
     ];
 
@@ -697,9 +715,41 @@
 
     input.addEventListener('input', function() {
       var q = input.value.trim();
+      var qLower = q.toLowerCase();
 
-      if (q.toLowerCase() === 'sudo') {
-        filtered = [{ icon: '\ud83d\udd12', label: 'Nice try. Permission denied.', hint: 'you are not root', action: function() {} }];
+      if (qLower === 'sudo') {
+        filtered = [{ icon: '!!', label: 'Nice try. Permission denied.', hint: 'you are not root', action: function() {} }];
+        activeIdx = 0;
+        render();
+        return;
+      }
+
+      if (qLower === 'help') {
+        filtered = [
+          { icon: '?', label: 'SYSTEM CMD: List Shortcuts', hint: 'show-key-map', action: function() { alert('Shortcuts:\nSpace: Toggle Menu\nCtrl+K: Command Palette'); } },
+          { icon: '#', label: 'SYSTEM CMD: Toggle Matrix Mode', hint: 'theme-override', action: function() { document.body.classList.toggle('matrix-theme'); close(); } }
+        ];
+        activeIdx = 0;
+        render();
+        return;
+      }
+
+      if (qLower === 'matrix') {
+        filtered = [{ icon: '[x]', label: 'Follow the white rabbit...', hint: 'toggle-theme', action: function() { document.body.classList.toggle('matrix-theme'); close(); } }];
+        activeIdx = 0;
+        render();
+        return;
+      }
+
+      if (qLower === 'archit') {
+        filtered = [{ icon: '@', label: 'Lead ML Engineer / Researcher', hint: 'creator', action: function() { alert('Built with focus and precision. - Archit'); } }];
+        activeIdx = 0;
+        render();
+        return;
+      }
+
+      if (qLower === 'boom') {
+        filtered = [{ icon: '[!]', label: 'Self destruct in 3... 2... 1...', hint: 'rm -rf /', action: function() { document.body.style.filter = 'invert(1) blur(10px)'; setTimeout(function() { window.location.reload(); }, 1000); } }];
         activeIdx = 0;
         render();
         return;
@@ -741,6 +791,44 @@
 
     var kbdBtn = document.getElementById('nav-kbd-trigger');
     if (kbdBtn) kbdBtn.addEventListener('click', open);
+
+    /* Keyboard sequence buffer for word-based easter eggs */
+    var keyBuffer = '';
+    var keyTimer = null;
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
+
+      keyBuffer += e.key.toLowerCase();
+      if (keyTimer) clearTimeout(keyTimer);
+
+      keyTimer = setTimeout(function() {
+        var seq = keyBuffer;
+        keyBuffer = '';
+
+        if (seq === 'matrix') {
+          document.body.classList.toggle('matrix-theme');
+          return;
+        }
+        if (seq === 'help') {
+          open();
+          input.value = 'help';
+          input.dispatchEvent(new Event('input'));
+          return;
+        }
+        if (seq === 'archit') {
+          open();
+          input.value = 'archit';
+          input.dispatchEvent(new Event('input'));
+          return;
+        }
+        if (seq === ' ') {
+          e.preventDefault();
+          palette.hidden ? open() : close();
+        }
+      }, 350);
+    });
   })();
 
   (function konamiCode() {
