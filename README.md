@@ -16,7 +16,7 @@ license: mit
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
-[![HuggingFace Spaces](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://huggingface.co/spaces/Archit-Konde/RAG)
+[![HuggingFace Spaces](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://huggingface.co/spaces/architechs/RAG)
 [![Project Page](https://img.shields.io/badge/🌐-Project%20Page-C9A84C)](https://archit-konde.github.io/RAG/)
 
 ---
@@ -191,7 +191,7 @@ Evaluated on a 50-question QA set over a technical PDF (~80 pages).
 ## Links
 
 - [**Project Page**](https://archit-konde.github.io/RAG/) — terminal-styled landing page
-- [**Live Demo**](https://huggingface.co/spaces/Archit-Konde/RAG) — HuggingFace Spaces
+- [**Live Demo**](https://huggingface.co/spaces/architechs/RAG) — HuggingFace Spaces
 - [**Learning Document**](docs/LEARNING.md) — full math derivations (blog post source)
 
 ---

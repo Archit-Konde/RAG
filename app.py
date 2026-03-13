@@ -188,7 +188,7 @@ with st.sidebar:
     st.caption(
         "Built from scratch · "
         "[GitHub](https://github.com/Archit-Konde/RAG) · "
-        "[HF Spaces](https://huggingface.co/spaces/Archit-Konde/RAG)"
+        "[HF Spaces](https://huggingface.co/spaces/architechs/RAG)"
     )
 
 # ---------------------------------------------------------------------------
