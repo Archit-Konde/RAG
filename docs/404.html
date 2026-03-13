@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>404 — RAG From Scratch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#1e1e1e;--surface:#252526;--border:#3e3e42;
+    --text:#d4d4d4;--muted:#858585;--accent:#C9A84C;
+    --green:#28c840;--red:#ff5f56;--yellow:#febc2e;
+    --font:'JetBrains Mono',monospace;
+  }
+  html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text)}
+  body{display:flex;align-items:center;justify-content:center;padding:1.5rem}
+
+  .terminal{width:100%;max-width:640px;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.45)}
+  .bar{background:var(--surface);padding:.55rem .75rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--border)}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .dot.r{background:var(--red)}.dot.y{background:var(--yellow)}.dot.g{background:var(--green)}
+  .bar span{flex:1;text-align:center;font-size:.75rem;color:var(--muted)}
+
+  .body{padding:2rem 1.5rem}
+  .code{font-size:3.5rem;font-weight:700;color:var(--accent);line-height:1}
+  .msg{margin-top:.75rem;color:var(--muted);font-size:.95rem;line-height:1.6}
+  .msg b{color:var(--text)}
+  .prompt{margin-top:1.75rem;font-size:.85rem;color:var(--green)}
+  .prompt a{color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent)}
+  .prompt a:hover{color:var(--text);border-color:var(--text)}
+
+  .cursor{display:inline-block;width:8px;height:1.1em;background:var(--accent);vertical-align:text-bottom;animation:blink 1s step-end infinite;margin-left:2px}
+  @keyframes blink{50%{opacity:0}}
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="bar">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <span>archit@portfolio: ~/rag-from-scratch/404</span>
+  </div>
+  <div class="body">
+    <div class="code">404</div>
+    <p class="msg">
+      <b>chunk not found.</b><br/>
+      The page you requested isn't in our vector store.<br/>
+      Maybe it was never indexed, or the embeddings drifted.
+    </p>
+    <p class="prompt">
+      $ cd <a href="/RAG/">home</a><span class="cursor"></span>
+    </p>
+  </div>
+</div>
+</body>
+</html>
