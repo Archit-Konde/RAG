@@ -1,4 +1,3 @@
-<!--
 ---
 title: RAG Pipeline Demo
 emoji: 🔍
@@ -10,7 +9,6 @@ app_file: app.py
 pinned: false
 license: mit
 ---
--->
 
 # RAG Pipeline — From Scratch
 
