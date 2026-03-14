@@ -890,7 +890,8 @@
     var termBody = prompt.closest('.term-body');
     if (termBody) {
       termBody.style.cursor = 'text';
-      termBody.addEventListener('click', function() { active = true; });
+      termBody.addEventListener('click', function(e) { e.stopPropagation(); active = true; });
+      document.addEventListener('click', function() { active = false; });
     }
 
     function addResponse(text, cls) {
