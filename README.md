@@ -1,15 +1,3 @@
----
-title: RAG Pipeline Demo
-emoji: 🔍
-colorFrom: blue
-colorTo: indigo
-sdk: streamlit
-sdk_version: 1.33.0
-app_file: app.py
-pinned: false
-license: mit
----
-
 # RAG Pipeline — From Scratch
 
 > Retrieval-Augmented Generation built entirely by hand. No LangChain. No LlamaIndex. Every algorithm implemented from first principles.
