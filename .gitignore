@@ -18,11 +18,16 @@ build/
 .coverage
 htmlcov/
 
-# Data / index files
+# Data / index files (user uploads — not committed)
 data/store.npz
 data/store.json
 data/*.pdf
 data/*.txt
+
+# Benchmark data (committed — part of the project)
+!data/benchmark_corpus.txt
+!data/test_cases.json
+!data/benchmark_results.json
 
 # Uploaded docs (temp)
 *.pdf
@@ -32,6 +37,10 @@ uploads/
 .vscode/
 .idea/
 *.swp
+
+# Learning exercises (local only)
+learn/
+test_doc.txt
 
 # OS
 .DS_Store

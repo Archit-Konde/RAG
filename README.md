@@ -149,15 +149,18 @@ pytest tests/ --cov=src --cov-report=term-missing
 
 ## Benchmarks
 
-Evaluated on a 50-question QA set over a technical PDF (~80 pages).
+Evaluated on a 25-question QA set over a 30-section HTTP/1.1 protocol corpus (~12,000 characters).
+Ground truth was verified by inspecting chunk boundaries before authoring test cases.
+Reproduce with: `python scripts/run_benchmark.py`
 
 | Metric | Dense only | Sparse only | Hybrid (RRF) | Hybrid + Rerank |
 |--------|-----------|-------------|--------------|-----------------|
-| Precision@5 | — | — | — | — |
-| Recall@5 | — | — | — | — |
-| MRR | — | — | — | — |
+| Precision@5 | 0.2240 | 0.2160 | 0.2240 | 0.2240 |
+| Recall@5 | 1.0000 | 0.9600 | 1.0000 | 1.0000 |
+| MRR | 0.9733 | 0.8933 | 0.9800 | **1.0000** |
 
-*Benchmarks will be populated after evaluation suite is run on a test corpus.*
+Hybrid + Rerank achieves MRR = 1.0 — the cross-encoder placed the most relevant chunk at rank 1 for every query.
+Precision@5 is low by design: a 30-chunk corpus with top-5 retrieval means 25 non-relevant chunks are always returned alongside the correct one.
 
 ---
 
