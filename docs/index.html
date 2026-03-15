@@ -938,6 +938,8 @@
         addResponse('  clear         \u2014 clear output');
         addResponse('  exit / exit 0 \u2014 shutdown animation');
         addResponse('  sudo <cmd>    \u2014 try it :)');
+        addResponse('  matrix        \u2014 toggle matrix theme');
+        addResponse('  reboot        \u2014 replay boot sequence');
       } else if (lower === 'ls') {
         addResponse('\u2192 chunker.py      \u2014 recursive text splitting');
         addResponse('\u2192 embeddings.py   \u2014 all-MiniLM-L6-v2 mean pooling');
@@ -973,6 +975,16 @@
       } else if (lower.startsWith('sudo')) {
         addResponse('Permission denied. You are not in the sudoers file.', 'error');
         addResponse('This incident will be reported.', 'error');
+      } else if (lower === 'matrix') {
+        document.body.classList.toggle('matrix-theme');
+        addResponse('// toggling matrix theme...', 'accent');
+      } else if (lower === 'reboot') {
+        addResponse('Rebooting system...', 'accent');
+        setTimeout(function() {
+          document.body.style.transition = 'opacity 0.4s';
+          document.body.style.opacity = '0';
+          setTimeout(function() { sessionStorage.removeItem('boot-seen'); window.location.reload(); }, 500);
+        }, 500);
       } else if (lower === '') {
         return;
       } else {
