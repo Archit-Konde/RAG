@@ -16,7 +16,8 @@ Source attribution:
 """
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Optional
+import os
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -76,10 +77,7 @@ class LLMGenerator:
         context_blocks: List[str] = []
         for i, chunk in enumerate(chunks, start=1):
             meta = chunk.get("metadata", {})
-            filename = meta.get("source", "unknown")
-            # Use just the basename for readability in the prompt
-            import os
-            filename = os.path.basename(filename) if filename != "unknown" else "unknown"
+            filename = self._source_basename(meta)
             chunk_idx = meta.get("chunk_index", "?")
             header = f"[Source {i}] ({filename}, chunk {chunk_idx}):"
             context_blocks.append(f"{header}\n{chunk['text']}")
@@ -161,6 +159,16 @@ class LLMGenerator:
         return response.json()
 
     # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _source_basename(meta: Dict[str, Any]) -> str:
+        """Extract a human-readable filename from chunk metadata."""
+        raw = meta.get("source", "unknown")
+        return os.path.basename(raw) if raw != "unknown" else "unknown"
+
+    # ------------------------------------------------------------------
     # Source attribution
     # ------------------------------------------------------------------
 
@@ -174,12 +182,10 @@ class LLMGenerator:
             chunk_index – sequential chunk number within the document
             score       – retrieval / rerank score (whichever is available)
         """
-        import os
         sources = []
         for i, chunk in enumerate(chunks, start=1):
             meta = chunk.get("metadata", {})
-            raw_source = meta.get("source", "unknown")
-            filename = os.path.basename(raw_source) if raw_source != "unknown" else "unknown"
+            filename = LLMGenerator._source_basename(meta)
 
             # Prefer rerank_score > retrieval score > 0
             score = chunk.get("rerank_score", chunk.get("score", 0.0))

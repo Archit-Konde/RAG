@@ -12,8 +12,6 @@ from __future__ import annotations
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional
-
 import streamlit as st
 
 # ---------------------------------------------------------------------------
@@ -231,11 +229,10 @@ if not api_key.strip() and st.session_state["retriever"] is not None:
 if submit and query.strip() and st.session_state["retriever"] is not None:
     with st.spinner("Retrieving and generating…"):
         try:
-            from src.reranker import CrossEncoderReranker
             from src.generator import LLMGenerator
 
             # Retrieve
-            retriever: HybridRetriever = st.session_state["retriever"]
+            retriever = st.session_state["retriever"]
             retrieved = retriever.retrieve(query, top_k=top_k)
 
             # Rerank
