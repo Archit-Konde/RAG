@@ -1,6 +1,7 @@
 """
 Shared utility functions used across pipeline components.
 """
+
 from __future__ import annotations
 
 import numpy as np

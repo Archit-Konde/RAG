@@ -7,11 +7,13 @@ Wires together every src/ component into an end-to-end pipeline:
 Compatible with HuggingFace Spaces (all file I/O uses /tmp via tempfile,
 API key entered in the sidebar UI — no .env required on Spaces).
 """
+
 from __future__ import annotations
 
 import os
 import tempfile
 from pathlib import Path
+
 import streamlit as st
 
 # ---------------------------------------------------------------------------
@@ -29,21 +31,25 @@ st.set_page_config(
 # can render the UI immediately while models load in the background.
 # ---------------------------------------------------------------------------
 
+
 @st.cache_resource(show_spinner="Loading embedding model (~90MB)…")
 def load_embedding_model():
     from src.embeddings import EmbeddingModel
+
     return EmbeddingModel()
 
 
 @st.cache_resource(show_spinner="Loading cross-encoder (~85MB)…")
 def load_reranker():
     from src.reranker import CrossEncoderReranker
+
     return CrossEncoderReranker()
 
 
 # ---------------------------------------------------------------------------
 # Session state initialization
 # ---------------------------------------------------------------------------
+
 
 def init_session_state() -> None:
     defaults = {
@@ -87,17 +93,15 @@ with st.sidebar:
     if index_btn and uploaded_file is not None:
         with st.spinner("Ingesting and indexing…"):
             try:
-                from src.ingestion import load_document
-                from src.chunker import RecursiveTextChunker
-                from src.vectorstore import VectorStore
                 from src.bm25 import BM25
+                from src.chunker import RecursiveTextChunker
+                from src.ingestion import load_document
                 from src.retriever import HybridRetriever
+                from src.vectorstore import VectorStore
 
                 # Save uploaded file to a temp location
                 suffix = Path(uploaded_file.name).suffix
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=suffix
-                ) as tmp:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
                     tmp.write(uploaded_file.read())
                     tmp_path = tmp.name
 
@@ -106,9 +110,7 @@ with st.sidebar:
                 os.unlink(tmp_path)  # clean up temp file
 
                 # Chunk
-                chunker = RecursiveTextChunker(
-                    chunk_size=512, chunk_overlap=64
-                )
+                chunker = RecursiveTextChunker(chunk_size=512, chunk_overlap=64)
                 chunks = chunker.split_text(doc["text"])
 
                 # Attach source metadata to every chunk
@@ -150,10 +152,7 @@ with st.sidebar:
 
     # Index status
     if st.session_state["indexed_filename"]:
-        st.info(
-            f"**Indexed:** {st.session_state['indexed_filename']}\n\n"
-            f"**Chunks:** {st.session_state['chunk_count']}"
-        )
+        st.info(f"**Indexed:** {st.session_state['indexed_filename']}\n\n**Chunks:** {st.session_state['chunk_count']}")
 
     st.divider()
 
@@ -212,11 +211,7 @@ with col2:
     submit = st.button(
         "Ask ▶",
         use_container_width=True,
-        disabled=(
-            st.session_state["retriever"] is None
-            or not api_key.strip()
-            or not query.strip()
-        ),
+        disabled=(st.session_state["retriever"] is None or not api_key.strip() or not query.strip()),
     )
 
 if st.session_state["retriever"] is None:
@@ -249,10 +244,13 @@ if submit and query.strip() and st.session_state["retriever"] is not None:
             result["chunks"] = reranked
 
             # Prepend to history so newest is at top
-            st.session_state["chat_history"].insert(0, {
-                "query": query,
-                "result": result,
-            })
+            st.session_state["chat_history"].insert(
+                0,
+                {
+                    "query": query,
+                    "result": result,
+                },
+            )
 
         except Exception as exc:
             st.error(f"Pipeline error: {exc}")
@@ -276,7 +274,7 @@ for entry in st.session_state["chat_history"]:
             filename = meta.get("filename", meta.get("source", "unknown"))
             filename = os.path.basename(filename)
             st.markdown(
-                f"**[Source {i}]** `{filename}` · chunk `{meta.get('chunk_index','?')}` · "
+                f"**[Source {i}]** `{filename}` · chunk `{meta.get('chunk_index', '?')}` · "
                 f"rerank score: `{rerank_score:.4f}`"
             )
             text = chunk["text"]
@@ -288,6 +286,7 @@ for entry in st.session_state["chat_history"]:
     with st.expander("📎 Sources"):
         if res.get("sources"):
             import pandas as pd
+
             st.dataframe(
                 pd.DataFrame(res["sources"]),
                 use_container_width=True,

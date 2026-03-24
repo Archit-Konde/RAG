@@ -6,15 +6,17 @@ without a real API key.
 
 Run with: pytest tests/test_generator.py -v
 """
-import json
-import pytest
-from unittest.mock import MagicMock, patch
-from src.generator import LLMGenerator
 
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from src.generator import LLMGenerator
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_generator(**kwargs) -> LLMGenerator:
     defaults = {
@@ -58,6 +60,7 @@ def make_mock_response(answer: str = "The answer is 42.") -> MagicMock:
 # 1. build_prompt returns a system + user message pair
 # ---------------------------------------------------------------------------
 
+
 def test_build_prompt_structure():
     gen = make_generator()
     messages = gen.build_prompt("What is X?", make_chunks(2))
@@ -69,6 +72,7 @@ def test_build_prompt_structure():
 # ---------------------------------------------------------------------------
 # 2. Sources are numbered [Source 1], [Source 2], ... in the user message
 # ---------------------------------------------------------------------------
+
 
 def test_build_prompt_sources_numbered():
     gen = make_generator()
@@ -84,6 +88,7 @@ def test_build_prompt_sources_numbered():
 # 3. Empty chunk list produces a graceful prompt
 # ---------------------------------------------------------------------------
 
+
 def test_build_prompt_no_chunks():
     gen = make_generator()
     messages = gen.build_prompt("What is X?", [])
@@ -94,6 +99,7 @@ def test_build_prompt_no_chunks():
 # ---------------------------------------------------------------------------
 # 4. _extract_sources returns dicts with required keys
 # ---------------------------------------------------------------------------
+
 
 def test_extract_sources_keys():
     chunks = make_chunks(2)
@@ -108,9 +114,11 @@ def test_extract_sources_keys():
 # 5. _extract_sources uses basename of source path
 # ---------------------------------------------------------------------------
 
+
 def test_extract_sources_basename():
-    chunks = [{"text": "x", "metadata": {"source": "/long/path/to/my_file.pdf", "chunk_index": 0},
-               "score": 0.5, "index": 0}]
+    chunks = [
+        {"text": "x", "metadata": {"source": "/long/path/to/my_file.pdf", "chunk_index": 0}, "score": 0.5, "index": 0}
+    ]
     sources = LLMGenerator._extract_sources(chunks)
     assert sources[0]["filename"] == "my_file.pdf"
 
@@ -118,6 +126,7 @@ def test_extract_sources_basename():
 # ---------------------------------------------------------------------------
 # 6. generate() calls requests.post exactly once
 # ---------------------------------------------------------------------------
+
 
 @patch("src.generator.requests.post")
 def test_generate_calls_api_once(mock_post):
@@ -131,6 +140,7 @@ def test_generate_calls_api_once(mock_post):
 # 7. generate() returns an "answer" key
 # ---------------------------------------------------------------------------
 
+
 @patch("src.generator.requests.post")
 def test_generate_returns_answer_key(mock_post):
     mock_post.return_value = make_mock_response("The answer is 42.")
@@ -143,6 +153,7 @@ def test_generate_returns_answer_key(mock_post):
 # ---------------------------------------------------------------------------
 # 8. generate() returns integer token counts
 # ---------------------------------------------------------------------------
+
 
 @patch("src.generator.requests.post")
 def test_generate_returns_token_counts(mock_post):
@@ -159,9 +170,11 @@ def test_generate_returns_token_counts(mock_post):
 # 9. HTTP 401 error propagates as requests.HTTPError
 # ---------------------------------------------------------------------------
 
+
 @patch("src.generator.requests.post")
 def test_http_error_propagates(mock_post):
     import requests as req_lib
+
     mock_resp = MagicMock()
     mock_resp.raise_for_status.side_effect = req_lib.HTTPError("401 Unauthorized")
     mock_post.return_value = mock_resp
@@ -175,9 +188,11 @@ def test_http_error_propagates(mock_post):
 # 10. Timeout propagates as requests.Timeout
 # ---------------------------------------------------------------------------
 
+
 @patch("src.generator.requests.post")
 def test_api_timeout_propagates(mock_post):
     import requests as req_lib
+
     mock_post.side_effect = req_lib.Timeout("Request timed out")
 
     gen = make_generator()
@@ -188,6 +203,7 @@ def test_api_timeout_propagates(mock_post):
 # ---------------------------------------------------------------------------
 # 11. generate() result includes "sources" key
 # ---------------------------------------------------------------------------
+
 
 @patch("src.generator.requests.post")
 def test_generate_includes_sources(mock_post):
@@ -201,6 +217,7 @@ def test_generate_includes_sources(mock_post):
 # ---------------------------------------------------------------------------
 # 12. The system message contains the key RAG instruction
 # ---------------------------------------------------------------------------
+
 
 def test_system_message_rag_contract():
     gen = make_generator()

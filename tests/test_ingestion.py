@@ -6,14 +6,17 @@ A single-page PDF is generated programmatically with PyPDF2's writer.
 
 Run with: pytest tests/test_ingestion.py -v
 """
-import pytest
-from pathlib import Path
-from src.ingestion import load_pdf, load_text, load_document
 
+from pathlib import Path
+
+import pytest
+
+from src.ingestion import load_document, load_pdf, load_text
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def write_text_file(path: Path, content: str = "Hello, world!\nLine two.") -> Path:
     path.write_text(content, encoding="utf-8")
@@ -25,8 +28,8 @@ def write_pdf_file(path: Path, text: str = "Test PDF content.") -> Path:
     try:
         from PyPDF2 import PdfWriter
         from PyPDF2.generic import (
-            ArrayObject, DecodedStreamObject, DictionaryObject,
-            FloatObject, NameObject, NumberObject, StreamObject,
+            DecodedStreamObject,
+            NameObject,
         )
     except ImportError:
         pytest.skip("PyPDF2 not installed")
@@ -57,6 +60,7 @@ def write_pdf_file(path: Path, text: str = "Test PDF content.") -> Path:
 # ---------------------------------------------------------------------------
 # load_text tests
 # ---------------------------------------------------------------------------
+
 
 def test_load_text_basic(tmp_path):
     p = write_text_file(tmp_path / "doc.txt", "Hello, world!\nLine two.")
@@ -96,13 +100,13 @@ def test_source_is_absolute_path(tmp_path):
     p = write_text_file(tmp_path / "doc.txt")
     result = load_text(str(p))
     source = result["metadata"]["source"]
-    from pathlib import Path as PL
-    assert PL(source).is_absolute(), f"source is not absolute: {source}"
+    assert Path(source).is_absolute(), f"source is not absolute: {source}"
 
 
 # ---------------------------------------------------------------------------
 # load_pdf tests
 # ---------------------------------------------------------------------------
+
 
 def test_load_pdf_missing_file_raises():
     with pytest.raises(FileNotFoundError):
@@ -147,6 +151,7 @@ def test_load_pdf_filename(tmp_path):
 # ---------------------------------------------------------------------------
 # load_document dispatcher tests
 # ---------------------------------------------------------------------------
+
 
 def test_load_document_dispatch_txt(tmp_path):
     p = write_text_file(tmp_path / "doc.txt")

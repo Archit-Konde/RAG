@@ -11,6 +11,7 @@ Usage:
     # Optional flags
     python scripts/run_benchmark.py --top-k 5 --rerank-pool 10
 """
+
 from __future__ import annotations
 
 import argparse
@@ -24,10 +25,10 @@ sys.path.insert(0, str(ROOT))
 
 from src.chunker import RecursiveTextChunker
 
-
 # ------------------------------------------------------------------
 # CLI
 # ------------------------------------------------------------------
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="RAG pipeline benchmark")
@@ -85,33 +86,35 @@ def chunk_corpus(corpus: str) -> list[dict]:
 # Inspect mode
 # ------------------------------------------------------------------
 
+
 def run_inspect(chunks: list[dict]) -> None:
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  CORPUS INSPECTION — {len(chunks)} chunks")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     for chunk in chunks:
         idx = chunk["chunk_index"]
         text = chunk["text"]
         preview = text[:120].replace("\n", " ")
         print(f"\n[{idx:02d}] ({len(text)} chars)")
         print(f"     {preview!r}")
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  Total chunks: {len(chunks)}")
-    print(f"  Use these indices as 'relevant_ids' in data/test_cases.json")
-    print(f"{'='*70}\n")
+    print("  Use these indices as 'relevant_ids' in data/test_cases.json")
+    print(f"{'=' * 70}\n")
 
 
 # ------------------------------------------------------------------
 # Full benchmark
 # ------------------------------------------------------------------
 
+
 def build_index(chunks: list[dict]):
     """Embed corpus and build vectorstore + BM25. Returns (retriever, reranker)."""
-    from src.embeddings import EmbeddingModel
-    from src.vectorstore import VectorStore
     from src.bm25 import BM25
-    from src.retriever import HybridRetriever
+    from src.embeddings import EmbeddingModel
     from src.reranker import CrossEncoderReranker
+    from src.retriever import HybridRetriever
+    from src.vectorstore import VectorStore
 
     texts = [c["text"] for c in chunks]
     metadata = [{"chunk_index": c["chunk_index"]} for c in chunks]
@@ -142,13 +145,9 @@ def make_pipeline_fn(mode: str, retriever, reranker, top_k: int, rerank_pool: in
 
     def pipeline_fn(query: str) -> dict:
         if mode == "dense":
-            results = retriever.retrieve(
-                query, top_k=top_k, dense_top_k=top_k, sparse_top_k=0
-            )
+            results = retriever.retrieve(query, top_k=top_k, dense_top_k=top_k, sparse_top_k=0)
         elif mode == "sparse":
-            results = retriever.retrieve(
-                query, top_k=top_k, dense_top_k=0, sparse_top_k=top_k
-            )
+            results = retriever.retrieve(query, top_k=top_k, dense_top_k=0, sparse_top_k=top_k)
         elif mode == "hybrid":
             results = retriever.retrieve(query, top_k=top_k)
         elif mode == "hybrid_rerank":
@@ -168,8 +167,7 @@ def run_benchmark(args: argparse.Namespace, chunks: list[dict]) -> None:
     # Load test cases
     if not TEST_CASES_PATH.exists():
         sys.exit(
-            f"[error] test cases not found: {TEST_CASES_PATH}\n"
-            "Run --inspect first, then create data/test_cases.json"
+            f"[error] test cases not found: {TEST_CASES_PATH}\nRun --inspect first, then create data/test_cases.json"
         )
     test_cases = json.loads(TEST_CASES_PATH.read_text(encoding="utf-8"))
     print(f"Loaded {len(test_cases)} test cases from {TEST_CASES_PATH.name}")
@@ -182,9 +180,7 @@ def run_benchmark(args: argparse.Namespace, chunks: list[dict]) -> None:
     for mode in MODES:
         label = MODE_LABELS[mode]
         print(f"Running: {label}...")
-        pipeline_fn = make_pipeline_fn(
-            mode, retriever, reranker, args.top_k, args.rerank_pool
-        )
+        pipeline_fn = make_pipeline_fn(mode, retriever, reranker, args.top_k, args.rerank_pool)
         results = run_evaluation_suite(test_cases, pipeline_fn)
         all_results[mode] = results
         print(
@@ -195,23 +191,23 @@ def run_benchmark(args: argparse.Namespace, chunks: list[dict]) -> None:
 
     # Print formatted table
     col = 17
-    print(f"\n{'='*74}")
+    print(f"\n{'=' * 74}")
     print(f"  BENCHMARK RESULTS  (top_k={args.top_k}, n={len(test_cases)} queries)")
-    print(f"{'='*74}")
+    print(f"{'=' * 74}")
     header = f"{'Metric':<16}" + "".join(f"{MODE_LABELS[m]:>{col}}" for m in MODES)
     print(header)
     print("-" * 74)
     for metric_key, label in [
         ("mean_precision", f"Precision@{args.top_k}"),
-        ("mean_recall",    f"Recall@{args.top_k}"),
-        ("mean_mrr",       "MRR"),
-        ("mean_f1",        f"F1@{args.top_k}"),
+        ("mean_recall", f"Recall@{args.top_k}"),
+        ("mean_mrr", "MRR"),
+        ("mean_f1", f"F1@{args.top_k}"),
     ]:
         row = f"{label:<16}"
         for m in MODES:
             row += f"{all_results[m][metric_key]:>{col}.4f}"
         print(row)
-    print(f"{'='*74}\n")
+    print(f"{'=' * 74}\n")
 
     # Save results
     RESULTS_PATH.write_text(json.dumps(all_results, indent=2), encoding="utf-8")
@@ -222,6 +218,7 @@ def run_benchmark(args: argparse.Namespace, chunks: list[dict]) -> None:
 # ------------------------------------------------------------------
 # Main
 # ------------------------------------------------------------------
+
 
 def main() -> None:
     args = parse_args()

@@ -7,9 +7,8 @@ Key mechanics demonstrated:
   - L2 normalization for cosine-similarity-via-dot-product compatibility
   - Batched inference with torch.no_grad()
 """
-from __future__ import annotations
 
-from typing import List, Optional
+from __future__ import annotations
 
 import numpy as np
 import torch
@@ -36,7 +35,7 @@ class EmbeddingModel:
     def __init__(
         self,
         model_name: str = DEFAULT_MODEL,
-        device: Optional[str] = None,
+        device: str | None = None,
     ) -> None:
         self.device = device or detect_device()
         self.model_name = model_name
@@ -52,7 +51,7 @@ class EmbeddingModel:
 
     def embed_texts(
         self,
-        texts: List[str],
+        texts: list[str],
         batch_size: int = 32,
         show_progress: bool = False,
     ) -> np.ndarray:
@@ -65,13 +64,14 @@ class EmbeddingModel:
         if not texts:
             return np.empty((0, self.EMBEDDING_DIM), dtype=np.float32)
 
-        all_embeddings: List[np.ndarray] = []
+        all_embeddings: list[np.ndarray] = []
 
-        batches = [texts[i: i + batch_size] for i in range(0, len(texts), batch_size)]
+        batches = [texts[i : i + batch_size] for i in range(0, len(texts), batch_size)]
 
         if show_progress:
             try:
                 from tqdm import tqdm
+
                 batches = tqdm(batches, desc="Embedding")
             except ImportError:
                 pass
@@ -114,8 +114,8 @@ class EmbeddingModel:
     @staticmethod
     def _mean_pool(
         token_embeddings: torch.Tensor,  # (B, T, D)
-        attention_mask: torch.Tensor,    # (B, T)
-    ) -> torch.Tensor:                   # (B, D)
+        attention_mask: torch.Tensor,  # (B, T)
+    ) -> torch.Tensor:  # (B, D)
         """
         Average token embeddings weighted by the attention mask.
 
@@ -125,13 +125,13 @@ class EmbeddingModel:
         """
         # Expand mask to (B, T, D) to broadcast against token embeddings
         mask_expanded = (
-            attention_mask.unsqueeze(-1)          # (B, T, 1)
-            .expand_as(token_embeddings)           # (B, T, D)
+            attention_mask.unsqueeze(-1)  # (B, T, 1)
+            .expand_as(token_embeddings)  # (B, T, D)
             .float()
         )
         sum_embeddings = torch.sum(token_embeddings * mask_expanded, dim=1)  # (B, D)
         # Clamp denominator to avoid division by zero on all-padding rows
-        sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)           # (B, D)
+        sum_mask = torch.clamp(mask_expanded.sum(dim=1), min=1e-9)  # (B, D)
         return sum_embeddings / sum_mask
 
     # ------------------------------------------------------------------

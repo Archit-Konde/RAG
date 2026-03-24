@@ -18,20 +18,24 @@ Design note:
     any framework-specific types. The evaluation harness wires them to
     the pipeline via a `pipeline_fn` callable that maps query → result dict.
 """
+
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Union
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # ---------------------------------------------------------------------------
 # Retrieval metrics
 # ---------------------------------------------------------------------------
 
+
 def compute_retrieval_metrics(
-    retrieved_ids: List[Union[int, str]],
-    relevant_ids: List[Union[int, str]],
+    retrieved_ids: list[Union[int, str]],
+    relevant_ids: list[Union[int, str]],
     k: int | None = None,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """
     Compute precision, recall, F1, and MRR for a single query.
 
@@ -75,7 +79,7 @@ def compute_retrieval_metrics(
 
 
 def _compute_mrr(
-    retrieved_ids: List[Union[int, str]],
+    retrieved_ids: list[Union[int, str]],
     relevant_set: set,
 ) -> float:
     """
@@ -94,10 +98,11 @@ def _compute_mrr(
 # Generation faithfulness
 # ---------------------------------------------------------------------------
 
+
 def compute_faithfulness(
     answer: str,
-    context: List[str],
-    judge_fn: Callable[[str, List[str]], float],
+    context: list[str],
+    judge_fn: Callable[[str, list[str]], float],
 ) -> float:
     """
     Score how faithfully the answer is grounded in the provided context.
@@ -123,10 +128,11 @@ def compute_faithfulness(
 # Evaluation suite
 # ---------------------------------------------------------------------------
 
+
 def run_evaluation_suite(
-    test_cases: List[Dict[str, Any]],
-    pipeline_fn: Callable[[str], Dict[str, Any]],
-) -> Dict[str, Any]:
+    test_cases: list[dict[str, Any]],
+    pipeline_fn: Callable[[str], dict[str, Any]],
+) -> dict[str, Any]:
     """
     Run the full evaluation suite over a set of labelled test cases.
 
@@ -149,7 +155,7 @@ def run_evaluation_suite(
             "per_case":       list[dict],  # metrics for each test case
         }
     """
-    per_case: List[Dict[str, Any]] = []
+    per_case: list[dict[str, Any]] = []
 
     for case in test_cases:
         query = case["query"]

@@ -5,19 +5,20 @@ All tests use hand-crafted inputs with analytically known correct outputs.
 
 Run with: pytest tests/test_evaluation.py -v
 """
-import pytest
-from unittest.mock import MagicMock
-from src.evaluation import (
-    compute_retrieval_metrics,
-    compute_faithfulness,
-    run_evaluation_suite,
-    _compute_mrr,
-)
 
+from unittest.mock import MagicMock
+
+from src.evaluation import (
+    _compute_mrr,
+    compute_faithfulness,
+    compute_retrieval_metrics,
+    run_evaluation_suite,
+)
 
 # ---------------------------------------------------------------------------
 # compute_retrieval_metrics
 # ---------------------------------------------------------------------------
+
 
 def test_perfect_retrieval():
     retrieved = [0, 1, 2]
@@ -70,8 +71,8 @@ def test_mrr_no_hit():
 
 def test_f1_harmonic_mean():
     # P = 0.5, R = 1.0 → F1 = 2*0.5*1.0/(0.5+1.0) = 2/3
-    retrieved = [0, 99]   # 1 hit, 1 miss → P = 0.5
-    relevant = [0]        # 1 relevant → R = 1.0
+    retrieved = [0, 99]  # 1 hit, 1 miss → P = 0.5
+    relevant = [0]  # 1 relevant → R = 1.0
     result = compute_retrieval_metrics(retrieved, relevant)
     expected_f1 = 2 * 0.5 * 1.0 / (0.5 + 1.0)
     assert abs(result["f1_at_k"] - expected_f1) < 1e-9
@@ -105,6 +106,7 @@ def test_empty_relevant():
 # _compute_mrr
 # ---------------------------------------------------------------------------
 
+
 def test_mrr_first_position():
     assert _compute_mrr([0, 1, 2], {0}) == 1.0
 
@@ -120,6 +122,7 @@ def test_mrr_helper_no_hit():
 # ---------------------------------------------------------------------------
 # compute_faithfulness
 # ---------------------------------------------------------------------------
+
 
 def test_faithfulness_calls_judge_fn():
     judge = MagicMock(return_value=0.9)
@@ -145,6 +148,7 @@ def test_faithfulness_returns_float():
 # run_evaluation_suite
 # ---------------------------------------------------------------------------
 
+
 def test_run_suite_aggregates():
     test_cases = [
         {"query": "q1", "relevant_ids": [0, 1], "reference_answer": "ans1"},
@@ -165,11 +169,11 @@ def test_run_suite_aggregates():
 
 
 def test_run_suite_per_case_length():
-    test_cases = [
-        {"query": f"q{i}", "relevant_ids": [i]}
-        for i in range(5)
-    ]
-    pipeline_fn = lambda q: {"retrieved_ids": [], "answer": ""}
+    test_cases = [{"query": f"q{i}", "relevant_ids": [i]} for i in range(5)]
+
+    def pipeline_fn(q):
+        return {"retrieved_ids": [], "answer": ""}
+
     result = run_evaluation_suite(test_cases, pipeline_fn)
     assert len(result["per_case"]) == 5
 
@@ -183,7 +187,7 @@ def test_run_suite_empty_test_cases():
 def test_run_suite_partial_results():
     test_cases = [
         {"query": "q1", "relevant_ids": [0, 1]},  # retrieves 1/2 → recall=0.5
-        {"query": "q2", "relevant_ids": [5]},      # retrieves 0/1 → recall=0.0
+        {"query": "q2", "relevant_ids": [5]},  # retrieves 0/1 → recall=0.0
     ]
 
     def pipeline_fn(query):

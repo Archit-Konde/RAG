@@ -14,12 +14,12 @@ Formula:
              Robertson-Walker IDF — the outer +1 ensures IDF > 0 even for
              terms appearing in every document.
 """
+
 from __future__ import annotations
 
 import math
 import string
 from collections import Counter
-from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -42,12 +42,12 @@ class BM25:
         self.b = b
 
         # Populated by fit()
-        self._corpus: List[str] = []
-        self._tf: List[Dict[str, int]] = []   # term frequencies per document
-        self._dl: List[int] = []              # document lengths (token counts)
-        self._df: Dict[str, int] = {}         # document frequency per term
-        self._idf: Dict[str, float] = {}      # precomputed IDF per term
-        self._N: int = 0                      # corpus size
+        self._corpus: list[str] = []
+        self._tf: list[dict[str, int]] = []  # term frequencies per document
+        self._dl: list[int] = []  # document lengths (token counts)
+        self._df: dict[str, int] = {}  # document frequency per term
+        self._idf: dict[str, float] = {}  # precomputed IDF per term
+        self._N: int = 0  # corpus size
         self._avgdl: float = 0.0
         self._fitted: bool = False
 
@@ -55,7 +55,7 @@ class BM25:
     # Fitting
     # ------------------------------------------------------------------
 
-    def fit(self, corpus: List[str]) -> None:
+    def fit(self, corpus: list[str]) -> None:
         """
         Tokenize and index the corpus.
 
@@ -94,9 +94,9 @@ class BM25:
         terms that appear in every document (where the inner fraction would
         be ~0 without it).
         """
-        N = self._N
+        n = self._N
         for term, df in self._df.items():
-            self._idf[term] = math.log((N - df + 0.5) / (df + 0.5) + 1)
+            self._idf[term] = math.log((n - df + 0.5) / (df + 0.5) + 1)
 
     # ------------------------------------------------------------------
     # Scoring
@@ -134,14 +134,12 @@ class BM25:
                 dl = self._dl[doc_idx]
                 # BM25 TF component
                 numerator = tf * (self.k1 + 1)
-                denominator = tf + self.k1 * (
-                    1 - self.b + self.b * dl / self._avgdl
-                )
+                denominator = tf + self.k1 * (1 - self.b + self.b * dl / self._avgdl)
                 scores[doc_idx] += idf * (numerator / denominator)
 
         return scores
 
-    def get_top_n(self, query: str, n: int) -> List[dict]:
+    def get_top_n(self, query: str, n: int) -> list[dict]:
         """
         Return the top-n scoring documents for a query.
 
@@ -169,18 +167,14 @@ class BM25:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _tokenize(text: str) -> List[str]:
+    def _tokenize(text: str) -> list[str]:
         """
         Lowercase, strip punctuation, and whitespace-split.
 
         Intentionally simple — no stopword removal — to keep the
         implementation transparent and easy to reason about.
         """
-        return (
-            text.lower()
-            .translate(str.maketrans("", "", string.punctuation))
-            .split()
-        )
+        return text.lower().translate(str.maketrans("", "", string.punctuation)).split()
 
     # ------------------------------------------------------------------
     # Repr

@@ -17,9 +17,10 @@ RRF formula:
 Reference: Cormack, Clarke & Buettcher (2009). "Reciprocal Rank Fusion
 outperforms Condorcet and individual Rank Learning Methods."
 """
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.bm25 import BM25
@@ -40,9 +41,9 @@ class HybridRetriever:
 
     def __init__(
         self,
-        vectorstore: "VectorStore",
-        bm25: "BM25",
-        embedder: "EmbeddingModel",
+        vectorstore: VectorStore,
+        bm25: BM25,
+        embedder: EmbeddingModel,
         rrf_k: int = 60,
     ) -> None:
         self.vectorstore = vectorstore
@@ -58,9 +59,9 @@ class HybridRetriever:
         self,
         query: str,
         top_k: int = 5,
-        dense_top_k: Optional[int] = None,
-        sparse_top_k: Optional[int] = None,
-    ) -> List[dict]:
+        dense_top_k: int | None = None,
+        sparse_top_k: int | None = None,
+    ) -> list[dict]:
         """
         Retrieve the top_k most relevant documents for a query.
 
@@ -90,17 +91,15 @@ class HybridRetriever:
         sparse_results = self.bm25.get_top_n(query, n=sparse_top_k)
 
         # --- Fuse with RRF ---
-        fused = self._reciprocal_rank_fusion(
-            [dense_results, sparse_results], self.rrf_k
-        )
+        fused = self._reciprocal_rank_fusion([dense_results, sparse_results], self.rrf_k)
 
         # --- Enrich sparse-only hits with vectorstore text/metadata ---
         # dense_results already has text + metadata from VectorStore.
         # sparse_results has text + index but no metadata; we need to
         # pull metadata from the vectorstore's internal list for those.
-        index_to_dense: Dict[int, dict] = {r["index"]: r for r in dense_results}
+        index_to_dense: dict[int, dict] = {r["index"]: r for r in dense_results}
 
-        enriched: List[dict] = []
+        enriched: list[dict] = []
         for item in fused[:top_k]:
             idx = item["index"]
             if idx in index_to_dense:
@@ -125,9 +124,9 @@ class HybridRetriever:
 
     def _reciprocal_rank_fusion(
         self,
-        ranked_lists: List[List[dict]],
+        ranked_lists: list[list[dict]],
         rrf_k: int,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Fuse multiple ranked lists using RRF.
 
@@ -136,30 +135,21 @@ class HybridRetriever:
         Returns a list sorted by descending RRF score, with added key
         "rrf_score".
         """
-        scores: Dict[int, float] = {}
+        scores: dict[int, float] = {}
 
         for ranked_list in ranked_lists:
             for rank_0based, item in enumerate(ranked_list):
                 doc_idx = item["index"]
                 rank_1based = rank_0based + 1
-                scores[doc_idx] = (
-                    scores.get(doc_idx, 0.0) + 1.0 / (rrf_k + rank_1based)
-                )
+                scores[doc_idx] = scores.get(doc_idx, 0.0) + 1.0 / (rrf_k + rank_1based)
 
         sorted_items = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-        return [
-            {"index": idx, "rrf_score": score}
-            for idx, score in sorted_items
-        ]
+        return [{"index": idx, "rrf_score": score} for idx, score in sorted_items]
 
     # ------------------------------------------------------------------
     # Repr
     # ------------------------------------------------------------------
 
     def __repr__(self) -> str:
-        return (
-            f"HybridRetriever("
-            f"rrf_k={self.rrf_k}, "
-            f"store_size={len(self.vectorstore)})"
-        )
+        return f"HybridRetriever(rrf_k={self.rrf_k}, store_size={len(self.vectorstore)})"

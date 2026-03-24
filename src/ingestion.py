@@ -16,15 +16,15 @@ All functions return a standardized dict:
 The "source" absolute path propagates through chunker metadata all the way
 to the generator, enabling per-chunk source attribution in answers.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
-
 
 # ---------------------------------------------------------------------------
 # PDF loading
 # ---------------------------------------------------------------------------
+
 
 def load_pdf(path: str) -> dict:
     """
@@ -63,8 +63,7 @@ def load_pdf(path: str) -> dict:
     full_text = "\n\n".join(pages_text)
     if not full_text.strip():
         raise ValueError(
-            f"No extractable text found in '{p}'. "
-            "The PDF may be a scanned image without an OCR text layer."
+            f"No extractable text found in '{p}'. The PDF may be a scanned image without an OCR text layer."
         )
 
     return {
@@ -82,6 +81,7 @@ def load_pdf(path: str) -> dict:
 # ---------------------------------------------------------------------------
 # Plain text loading
 # ---------------------------------------------------------------------------
+
 
 def load_text(path: str) -> dict:
     """
@@ -118,6 +118,7 @@ def load_text(path: str) -> dict:
 # Dispatcher
 # ---------------------------------------------------------------------------
 
+
 def load_document(path: str) -> dict:
     """
     Load a document from disk, dispatching on file extension.
@@ -141,7 +142,4 @@ def load_document(path: str) -> dict:
     elif suffix in {".txt", ".md"}:
         return load_text(path)
     else:
-        raise ValueError(
-            f"Unsupported file type: '{suffix}'. "
-            "Supported types are: .pdf, .txt, .md"
-        )
+        raise ValueError(f"Unsupported file type: '{suffix}'. Supported types are: .pdf, .txt, .md")

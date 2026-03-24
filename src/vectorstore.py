@@ -9,11 +9,12 @@ Save format:
   {path}.npz  — NumPy archive with key "embeddings"
   {path}.json — JSON array of {"document": str, "metadata": dict} objects
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -35,9 +36,9 @@ class VectorStore:
 
     def __init__(self) -> None:
         # Embeddings matrix: shape (N, D), float32, L2-normalized
-        self._embeddings: Optional[np.ndarray] = None
-        self._documents: List[str] = []
-        self._metadata: List[Dict[str, Any]] = []
+        self._embeddings: np.ndarray | None = None
+        self._documents: list[str] = []
+        self._metadata: list[dict[str, Any]] = []
 
     # ------------------------------------------------------------------
     # Indexing
@@ -46,8 +47,8 @@ class VectorStore:
     def add(
         self,
         embeddings: np.ndarray,
-        documents: List[str],
-        metadata: List[Dict[str, Any]],
+        documents: list[str],
+        metadata: list[dict[str, Any]],
     ) -> None:
         """
         Add a batch of embeddings and their associated documents.
@@ -58,9 +59,7 @@ class VectorStore:
             metadata:   list of N metadata dicts (arbitrary keys).
         """
         if len(embeddings) != len(documents) or len(embeddings) != len(metadata):
-            raise ValueError(
-                "embeddings, documents, and metadata must all have the same length"
-            )
+            raise ValueError("embeddings, documents, and metadata must all have the same length")
         if len(embeddings) == 0:
             return
 
@@ -69,9 +68,7 @@ class VectorStore:
         if self._embeddings is None:
             self._embeddings = embeddings
         else:
-            self._embeddings = np.concatenate(
-                [self._embeddings, embeddings], axis=0
-            )
+            self._embeddings = np.concatenate([self._embeddings, embeddings], axis=0)
 
         self._documents.extend(documents)
         self._metadata.extend(metadata)
@@ -84,7 +81,7 @@ class VectorStore:
         self,
         query_embedding: np.ndarray,
         top_k: int = 5,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Return the top_k most similar documents by cosine similarity.
 
@@ -108,7 +105,7 @@ class VectorStore:
         k = min(top_k, len(self._documents))
         top_idx = top_k_indices(scores, k)
 
-        results: List[Dict[str, Any]] = []
+        results: list[dict[str, Any]] = []
         for idx in top_idx:
             idx_int = int(idx)
             results.append(
@@ -121,7 +118,7 @@ class VectorStore:
             )
         return results
 
-    def get_by_index(self, idx: int) -> Dict[str, Any]:
+    def get_by_index(self, idx: int) -> dict[str, Any]:
         """
         Return the document text and metadata at a given index.
 
@@ -163,8 +160,7 @@ class VectorStore:
         # Save documents + metadata
         json_path = p.with_suffix(".json")
         payload = [
-            {"document": doc, "metadata": meta}
-            for doc, meta in zip(self._documents, self._metadata)
+            {"document": doc, "metadata": meta} for doc, meta in zip(self._documents, self._metadata, strict=True)
         ]
         json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -201,9 +197,5 @@ class VectorStore:
         return len(self._documents)
 
     def __repr__(self) -> str:
-        d = (
-            self._embeddings.shape[1]
-            if self._embeddings is not None and self._embeddings.ndim == 2
-            else "?"
-        )
+        d = self._embeddings.shape[1] if self._embeddings is not None and self._embeddings.ndim == 2 else "?"
         return f"VectorStore(n={len(self)}, dim={d})"

@@ -15,9 +15,8 @@ Model: cross-encoder/ms-marco-MiniLM-L-6-v2
   - ~22M parameters — fast enough for real-time re-ranking of 5–20 candidates
   - Raw logit output: higher → more relevant (no softmax needed for ranking)
 """
-from __future__ import annotations
 
-from typing import List, Optional
+from __future__ import annotations
 
 import numpy as np
 import torch
@@ -40,7 +39,7 @@ class CrossEncoderReranker:
     def __init__(
         self,
         model_name: str = DEFAULT_MODEL,
-        device: Optional[str] = None,
+        device: str | None = None,
     ) -> None:
         self.device = device or detect_device()
         self.model_name = model_name
@@ -57,10 +56,10 @@ class CrossEncoderReranker:
     def rerank(
         self,
         query: str,
-        documents: List[dict],
-        top_k: Optional[int] = None,
+        documents: list[dict],
+        top_k: int | None = None,
         batch_size: int = 16,
-    ) -> List[dict]:
+    ) -> list[dict]:
         """
         Re-score and sort a list of retrieved document dicts.
 
@@ -83,7 +82,7 @@ class CrossEncoderReranker:
         scores = self._score_pairs(query, texts, batch_size=batch_size)
 
         reranked = []
-        for doc, score in zip(documents, scores):
+        for doc, score in zip(documents, scores, strict=True):
             reranked.append({**doc, "rerank_score": float(score)})
 
         reranked.sort(key=lambda x: x["rerank_score"], reverse=True)
@@ -100,7 +99,7 @@ class CrossEncoderReranker:
     def _score_pairs(
         self,
         query: str,
-        texts: List[str],
+        texts: list[str],
         batch_size: int = 16,
     ) -> np.ndarray:
         """
@@ -113,10 +112,10 @@ class CrossEncoderReranker:
             np.ndarray of shape (N,), float32 raw logits.
             Higher logit = more relevant (no softmax — ranking only).
         """
-        all_scores: List[np.ndarray] = []
+        all_scores: list[np.ndarray] = []
 
         for i in range(0, len(texts), batch_size):
-            batch_texts = texts[i: i + batch_size]
+            batch_texts = texts[i : i + batch_size]
             queries = [query] * len(batch_texts)
 
             encoded = self.tokenizer(
@@ -133,8 +132,11 @@ class CrossEncoderReranker:
                 logits = self.model(**encoded).logits
 
             # logits shape: (B, 1) or (B,) depending on model config
-            all_scores.append(logits.squeeze(-1).cpu().float().numpy())
+            batch_scores = logits.squeeze(-1).cpu().float().numpy()
+            all_scores.append(np.atleast_1d(batch_scores))
 
+        if not all_scores:
+            return np.array([], dtype=np.float32)
         return np.concatenate(all_scores).astype(np.float32)
 
     # ------------------------------------------------------------------

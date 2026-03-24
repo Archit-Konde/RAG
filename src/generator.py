@@ -14,10 +14,11 @@ Source attribution:
   - The generator returns a sources list extracted from chunk metadata so
     the UI can display exactly which chunks were cited
 """
+
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -40,7 +41,7 @@ class LLMGenerator:
         "You are a precise question-answering assistant. "
         "Answer questions using ONLY the provided context. "
         "If the context does not contain enough information to answer, "
-        'say "I don\'t have enough information in the provided documents '
+        "say \"I don't have enough information in the provided documents "
         'to answer this question." '
         "Do not speculate or use knowledge outside the provided context. "
         "Cite sources using [Source N] notation where N matches the context "
@@ -67,14 +68,14 @@ class LLMGenerator:
     # Public API
     # ------------------------------------------------------------------
 
-    def build_prompt(self, query: str, chunks: List[dict]) -> List[dict]:
+    def build_prompt(self, query: str, chunks: list[dict]) -> list[dict]:
         """
         Build a chat messages list from a query and retrieved chunks.
 
         Returns:
             List of {"role": ..., "content": ...} dicts.
         """
-        context_blocks: List[str] = []
+        context_blocks: list[str] = []
         for i, chunk in enumerate(chunks, start=1):
             meta = chunk.get("metadata", {})
             filename = self._source_basename(meta)
@@ -91,7 +92,7 @@ class LLMGenerator:
             {"role": "user", "content": user_content},
         ]
 
-    def generate(self, query: str, chunks: List[dict]) -> dict:
+    def generate(self, query: str, chunks: list[dict]) -> dict:
         """
         Generate an answer for *query* grounded in *chunks*.
 
@@ -128,7 +129,7 @@ class LLMGenerator:
     # Raw HTTP call
     # ------------------------------------------------------------------
 
-    def _call_api(self, messages: List[dict]) -> dict:
+    def _call_api(self, messages: list[dict]) -> dict:
         """
         POST to {base_url}/chat/completions.
 
@@ -163,7 +164,7 @@ class LLMGenerator:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _source_basename(meta: Dict[str, Any]) -> str:
+    def _source_basename(meta: dict[str, Any]) -> str:
         """Extract a human-readable filename from chunk metadata."""
         raw = meta.get("source", "unknown")
         return os.path.basename(raw) if raw != "unknown" else "unknown"
@@ -173,7 +174,7 @@ class LLMGenerator:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _extract_sources(chunks: List[dict]) -> List[dict]:
+    def _extract_sources(chunks: list[dict]) -> list[dict]:
         """
         Build a source attribution list from chunk metadata.
 
@@ -201,8 +202,4 @@ class LLMGenerator:
         return sources
 
     def __repr__(self) -> str:
-        return (
-            f"LLMGenerator("
-            f"model={self.model!r}, "
-            f"base_url={self.base_url!r})"
-        )
+        return f"LLMGenerator(model={self.model!r}, base_url={self.base_url!r})"

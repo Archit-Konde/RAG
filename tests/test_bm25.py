@@ -6,11 +6,11 @@ reasoned about directly without a calculator.
 
 Run with: pytest tests/test_bm25.py -v
 """
-import math
+
 import numpy as np
 import pytest
-from src.bm25 import BM25
 
+from src.bm25 import BM25
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -33,6 +33,7 @@ def fitted_bm25(**kwargs) -> BM25:
 # 1. fit() does not crash
 # ---------------------------------------------------------------------------
 
+
 def test_fit_does_not_crash():
     bm = BM25()
     bm.fit(SMALL_CORPUS)
@@ -42,6 +43,7 @@ def test_fit_does_not_crash():
 # ---------------------------------------------------------------------------
 # 2. get_scores() returns array of length N
 # ---------------------------------------------------------------------------
+
 
 def test_get_scores_shape():
     bm = fitted_bm25()
@@ -53,10 +55,11 @@ def test_get_scores_shape():
 # 3. Document with most query terms scores highest
 # ---------------------------------------------------------------------------
 
+
 def test_exact_term_match_scores_highest():
     corpus = [
         "apple banana cherry",
-        "apple banana cherry date elderberry",   # contains all + more
+        "apple banana cherry date elderberry",  # contains all + more
         "unrelated document about football",
     ]
     bm = BM25()
@@ -72,6 +75,7 @@ def test_exact_term_match_scores_highest():
 # 4. Document with zero query term overlap scores 0.0
 # ---------------------------------------------------------------------------
 
+
 def test_zero_score_no_overlap():
     bm = fitted_bm25()
     scores = bm.get_scores("machine learning")
@@ -85,6 +89,7 @@ def test_zero_score_no_overlap():
 # 5. Rare term has higher IDF than common term
 # ---------------------------------------------------------------------------
 
+
 def test_idf_rare_term_higher():
     # "cat" appears in 2 of 3 docs → lower IDF
     # "machine" appears in 1 of 3 docs → higher IDF
@@ -96,24 +101,24 @@ def test_idf_rare_term_higher():
 # 6. Longer document is penalized relative to shorter (b normalization)
 # ---------------------------------------------------------------------------
 
+
 def test_longer_doc_penalized():
     # Two docs with identical TF for "cat" but different lengths
     corpus = [
-        "cat",                                      # 1 token
-        "cat " + "filler " * 50,                    # 51 tokens, same TF for "cat"
+        "cat",  # 1 token
+        "cat " + "filler " * 50,  # 51 tokens, same TF for "cat"
     ]
     bm = BM25(b=1.0)  # full length normalization
     bm.fit(corpus)
     scores = bm.get_scores("cat")
     # The shorter document should score higher with b=1.0
-    assert scores[0] > scores[1], (
-        f"Expected short doc ({scores[0]:.4f}) > long doc ({scores[1]:.4f})"
-    )
+    assert scores[0] > scores[1], f"Expected short doc ({scores[0]:.4f}) > long doc ({scores[1]:.4f})"
 
 
 # ---------------------------------------------------------------------------
 # 7. get_top_n results are sorted by score descending
 # ---------------------------------------------------------------------------
+
 
 def test_get_top_n_sorted_desc():
     bm = fitted_bm25()
@@ -126,6 +131,7 @@ def test_get_top_n_sorted_desc():
 # 8. get_top_n returns exactly n results
 # ---------------------------------------------------------------------------
 
+
 def test_get_top_n_length():
     bm = fitted_bm25()
     results = bm.get_top_n("cat", n=2)
@@ -135,6 +141,7 @@ def test_get_top_n_length():
 # ---------------------------------------------------------------------------
 # 9. OOV query term does not crash; contributes 0 to score
 # ---------------------------------------------------------------------------
+
 
 def test_unseen_query_term_no_crash():
     bm = fitted_bm25()
@@ -146,6 +153,7 @@ def test_unseen_query_term_no_crash():
 # 10. Tokenizer lowercases text
 # ---------------------------------------------------------------------------
 
+
 def test_tokenize_lowercases():
     assert BM25._tokenize("Hello World") == BM25._tokenize("hello world")
 
@@ -153,6 +161,7 @@ def test_tokenize_lowercases():
 # ---------------------------------------------------------------------------
 # 11. Tokenizer strips punctuation
 # ---------------------------------------------------------------------------
+
 
 def test_tokenize_strips_punctuation():
     tokens = BM25._tokenize("word. another, word!")
@@ -166,6 +175,7 @@ def test_tokenize_strips_punctuation():
 # ---------------------------------------------------------------------------
 # 12. Different k1/b values produce different scores
 # ---------------------------------------------------------------------------
+
 
 def test_k1_b_parameters_affect_scores():
     bm1 = BM25(k1=0.5, b=0.0)
@@ -182,6 +192,7 @@ def test_k1_b_parameters_affect_scores():
 # 13. get_top_n result dicts have required keys
 # ---------------------------------------------------------------------------
 
+
 def test_get_top_n_result_keys():
     bm = fitted_bm25()
     results = bm.get_top_n("cat", n=2)
@@ -194,6 +205,7 @@ def test_get_top_n_result_keys():
 # 14. IDF formula is always positive (Robertson-Walker +1 invariant)
 # ---------------------------------------------------------------------------
 
+
 def test_idf_always_positive():
     # Fit on a corpus where one term appears in every document
     corpus = ["cat dog", "cat bird", "cat fish"]  # "cat" in all 3
@@ -205,6 +217,7 @@ def test_idf_always_positive():
 # ---------------------------------------------------------------------------
 # 15. get_scores before fit() raises RuntimeError
 # ---------------------------------------------------------------------------
+
 
 def test_get_scores_before_fit_raises():
     bm = BM25()

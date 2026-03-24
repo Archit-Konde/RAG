@@ -2,15 +2,16 @@
 Unit tests for src/vectorstore.py — VectorStore.
 Run with: pytest tests/test_vectorstore.py -v
 """
-import json
-import pytest
-import numpy as np
-from src.vectorstore import VectorStore
 
+import numpy as np
+import pytest
+
+from src.vectorstore import VectorStore
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_unit_vectors(n: int, d: int = 4, seed: int = 0) -> np.ndarray:
     """Return n random L2-normalized vectors of dimension d."""
@@ -32,6 +33,7 @@ def make_meta(n: int) -> list:
 # 1. add() and __len__
 # ---------------------------------------------------------------------------
 
+
 def test_add_and_len():
     store = VectorStore()
     assert len(store) == 0
@@ -44,6 +46,7 @@ def test_add_and_len():
 # 2. search() returns exactly top_k results
 # ---------------------------------------------------------------------------
 
+
 def test_search_returns_top_k():
     store = VectorStore()
     store.add(make_unit_vectors(10), make_docs(10), make_meta(10))
@@ -55,6 +58,7 @@ def test_search_returns_top_k():
 # 3. Querying with the exact stored vector gives score ~1.0
 # ---------------------------------------------------------------------------
 
+
 def test_identical_vector_scores_one():
     store = VectorStore()
     embs = make_unit_vectors(5)
@@ -62,14 +66,13 @@ def test_identical_vector_scores_one():
     # Query with the second stored vector exactly
     results = store.search(embs[2], top_k=1)
     assert len(results) == 1
-    assert abs(results[0]["score"] - 1.0) < 1e-5, (
-        f"Expected score ~1.0, got {results[0]['score']}"
-    )
+    assert abs(results[0]["score"] - 1.0) < 1e-5, f"Expected score ~1.0, got {results[0]['score']}"
 
 
 # ---------------------------------------------------------------------------
 # 4. Result dicts have all required keys
 # ---------------------------------------------------------------------------
+
 
 def test_result_keys():
     store = VectorStore()
@@ -84,6 +87,7 @@ def test_result_keys():
 # 5. Results are sorted by score descending
 # ---------------------------------------------------------------------------
 
+
 def test_scores_descending():
     store = VectorStore()
     store.add(make_unit_vectors(20), make_docs(20), make_meta(20))
@@ -96,6 +100,7 @@ def test_scores_descending():
 # 6. Multiple calls to add() accumulate correctly
 # ---------------------------------------------------------------------------
 
+
 def test_multiple_adds():
     store = VectorStore()
     store.add(make_unit_vectors(3), make_docs(3), make_meta(3))
@@ -106,6 +111,7 @@ def test_multiple_adds():
 # ---------------------------------------------------------------------------
 # 7. save() / load() roundtrip produces identical results
 # ---------------------------------------------------------------------------
+
 
 def test_save_load_roundtrip(tmp_path):
     store = VectorStore()
@@ -126,7 +132,7 @@ def test_save_load_roundtrip(tmp_path):
     r1 = store.search(query, top_k=3)
     r2 = store2.search(query, top_k=3)
 
-    for a, b in zip(r1, r2):
+    for a, b in zip(r1, r2, strict=True):
         assert a["text"] == b["text"]
         assert abs(a["score"] - b["score"]) < 1e-5
         assert a["index"] == b["index"]
@@ -135,6 +141,7 @@ def test_save_load_roundtrip(tmp_path):
 # ---------------------------------------------------------------------------
 # 8. top_k larger than corpus does not crash
 # ---------------------------------------------------------------------------
+
 
 def test_top_k_larger_than_corpus():
     store = VectorStore()
@@ -146,6 +153,7 @@ def test_top_k_larger_than_corpus():
 # ---------------------------------------------------------------------------
 # 9. Metadata dict is preserved exactly
 # ---------------------------------------------------------------------------
+
 
 def test_metadata_preserved():
     store = VectorStore()
@@ -159,6 +167,7 @@ def test_metadata_preserved():
 # 10. Searching an empty store returns empty list (no crash)
 # ---------------------------------------------------------------------------
 
+
 def test_search_empty_store():
     store = VectorStore()
     results = store.search(make_unit_vectors(1)[0], top_k=5)
@@ -169,6 +178,7 @@ def test_search_empty_store():
 # 11. Mismatched lengths raise ValueError
 # ---------------------------------------------------------------------------
 
+
 def test_mismatched_lengths_raise():
     store = VectorStore()
     with pytest.raises(ValueError):
@@ -178,6 +188,7 @@ def test_mismatched_lengths_raise():
 # ---------------------------------------------------------------------------
 # 12. save() creates both .npz and .json files
 # ---------------------------------------------------------------------------
+
 
 def test_save_creates_both_files(tmp_path):
     store = VectorStore()
@@ -191,6 +202,7 @@ def test_save_creates_both_files(tmp_path):
 # ---------------------------------------------------------------------------
 # 13. Text content is preserved through save/load
 # ---------------------------------------------------------------------------
+
 
 def test_text_preserved_after_load(tmp_path):
     store = VectorStore()

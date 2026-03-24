@@ -1,0 +1,10 @@
+# Pinned dependency versions — generated from pip freeze
+# Update with: pip install -r requirements.txt && pip freeze | grep -iE "^(torch|transformers|numpy|PyPDF2|requests|streamlit|pytest|pytest-cov)==" > requirements.lock
+torch==2.10.0
+transformers==5.3.0
+numpy==2.4.3
+PyPDF2==3.0.1
+requests==2.32.5
+streamlit==1.55.0
+pytest==9.0.2
+pytest-cov>=5.0.0
