@@ -17,6 +17,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from src.utils import top_k_indices
+
 
 class VectorStore:
     """
@@ -103,19 +105,11 @@ class VectorStore:
         # Cosine similarity as dot product (vectors are pre-normalized)
         scores: np.ndarray = self._embeddings @ query  # shape (N,)
 
-        n = len(self._documents)
-        k = min(top_k, n)
-
-        if k == n:
-            # Return everything sorted
-            top_indices = np.argsort(scores)[::-1]
-        else:
-            # argpartition is O(N), then sort only the k candidates
-            partition = np.argpartition(scores, -k)[-k:]
-            top_indices = partition[np.argsort(scores[partition])[::-1]]
+        k = min(top_k, len(self._documents))
+        top_idx = top_k_indices(scores, k)
 
         results: List[Dict[str, Any]] = []
-        for idx in top_indices:
+        for idx in top_idx:
             idx_int = int(idx)
             results.append(
                 {
@@ -126,6 +120,22 @@ class VectorStore:
                 }
             )
         return results
+
+    def get_by_index(self, idx: int) -> Dict[str, Any]:
+        """
+        Return the document text and metadata at a given index.
+
+        Args:
+            idx: Position in the internal store.
+
+        Returns:
+            {"text": str, "metadata": dict, "index": int}
+        """
+        return {
+            "text": self._documents[idx],
+            "metadata": self._metadata[idx],
+            "index": idx,
+        }
 
     # ------------------------------------------------------------------
     # Persistence
@@ -171,8 +181,8 @@ class VectorStore:
         if not json_path.exists():
             raise FileNotFoundError(f"Metadata file not found: {json_path}")
 
-        archive = np.load(str(npz_path))
-        loaded_embeddings = archive["embeddings"].astype(np.float32)
+        with np.load(str(npz_path)) as archive:
+            loaded_embeddings = archive["embeddings"].astype(np.float32)
 
         if loaded_embeddings.size == 0:
             self._embeddings = None

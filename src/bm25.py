@@ -23,6 +23,8 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
+from src.utils import top_k_indices
+
 
 class BM25:
     """
@@ -41,7 +43,6 @@ class BM25:
 
         # Populated by fit()
         self._corpus: List[str] = []
-        self._tokenized: List[List[str]] = []
         self._tf: List[Dict[str, int]] = []   # term frequencies per document
         self._dl: List[int] = []              # document lengths (token counts)
         self._df: Dict[str, int] = {}         # document frequency per term
@@ -67,12 +68,12 @@ class BM25:
 
         self._corpus = corpus
         self._N = len(corpus)
-        self._tokenized = [self._tokenize(doc) for doc in corpus]
-        self._dl = [len(tokens) for tokens in self._tokenized]
+        tokenized = [self._tokenize(doc) for doc in corpus]
+        self._dl = [len(tokens) for tokens in tokenized]
         self._avgdl = sum(self._dl) / self._N if self._N > 0 else 0.0
 
         # Term frequencies per document
-        self._tf = [Counter(tokens) for tokens in self._tokenized]
+        self._tf = [Counter(tokens) for tokens in tokenized]
 
         # Document frequencies: how many docs contain each term
         self._df = {}
@@ -152,12 +153,7 @@ class BM25:
         if len(scores) == 0:
             return []
 
-        k = min(n, len(scores))
-        if k == len(scores):
-            top_indices = np.argsort(scores)[::-1]
-        else:
-            partition = np.argpartition(scores, -k)[-k:]
-            top_indices = partition[np.argsort(scores[partition])[::-1]]
+        top_idx = top_k_indices(scores, min(n, len(scores)))
 
         return [
             {
@@ -165,7 +161,7 @@ class BM25:
                 "score": float(scores[i]),
                 "index": int(i),
             }
-            for i in top_indices
+            for i in top_idx
         ]
 
     # ------------------------------------------------------------------

@@ -23,6 +23,8 @@ import numpy as np
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+from src.utils import detect_device
+
 
 class CrossEncoderReranker:
     """
@@ -40,15 +42,7 @@ class CrossEncoderReranker:
         model_name: str = DEFAULT_MODEL,
         device: Optional[str] = None,
     ) -> None:
-        if device is None:
-            if torch.cuda.is_available():
-                device = "cuda"
-            elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-                device = "mps"
-            else:
-                device = "cpu"
-
-        self.device = device
+        self.device = device or detect_device()
         self.model_name = model_name
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -119,7 +113,7 @@ class CrossEncoderReranker:
             np.ndarray of shape (N,), float32 raw logits.
             Higher logit = more relevant (no softmax — ranking only).
         """
-        all_scores: List[float] = []
+        all_scores: List[np.ndarray] = []
 
         for i in range(0, len(texts), batch_size):
             batch_texts = texts[i: i + batch_size]
@@ -139,10 +133,9 @@ class CrossEncoderReranker:
                 logits = self.model(**encoded).logits
 
             # logits shape: (B, 1) or (B,) depending on model config
-            logits = logits.squeeze(-1).cpu().float().numpy()
-            all_scores.extend(logits.tolist())
+            all_scores.append(logits.squeeze(-1).cpu().float().numpy())
 
-        return np.array(all_scores, dtype=np.float32)
+        return np.concatenate(all_scores).astype(np.float32)
 
     # ------------------------------------------------------------------
     # Repr

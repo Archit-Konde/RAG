@@ -15,6 +15,8 @@ import numpy as np
 import torch
 from transformers import AutoModel, AutoTokenizer
 
+from src.utils import detect_device
+
 
 class EmbeddingModel:
     """
@@ -36,15 +38,7 @@ class EmbeddingModel:
         model_name: str = DEFAULT_MODEL,
         device: Optional[str] = None,
     ) -> None:
-        if device is None:
-            if torch.cuda.is_available():
-                device = "cuda"
-            elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-                device = "mps"
-            else:
-                device = "cpu"
-
-        self.device = device
+        self.device = device or detect_device()
         self.model_name = model_name
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)

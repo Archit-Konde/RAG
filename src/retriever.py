@@ -107,11 +107,7 @@ class HybridRetriever:
                 base = index_to_dense[idx]
             else:
                 # Sparse-only hit: pull text + metadata from vectorstore
-                base = {
-                    "text": self.vectorstore._documents[idx],
-                    "metadata": self.vectorstore._metadata[idx],
-                    "index": idx,
-                }
+                base = self.vectorstore.get_by_index(idx)
             enriched.append(
                 {
                     "text": base["text"],
