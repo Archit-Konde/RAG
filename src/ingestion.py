@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from src.utils import resolve_path
+
 # ---------------------------------------------------------------------------
 # PDF loading
 # ---------------------------------------------------------------------------
@@ -47,9 +49,7 @@ def load_pdf(path: str) -> dict:
     except ImportError as exc:
         raise ImportError("PyPDF2 is required: pip install PyPDF2") from exc
 
-    p = Path(path).resolve()
-    if not p.exists():
-        raise FileNotFoundError(f"File not found: {p}")
+    p = resolve_path(path)
 
     pages_text: list[str] = []
     with open(p, "rb") as fh:
@@ -96,9 +96,7 @@ def load_text(path: str) -> dict:
     Raises:
         FileNotFoundError: If the file does not exist.
     """
-    p = Path(path).resolve()
-    if not p.exists():
-        raise FileNotFoundError(f"File not found: {p}")
+    p = resolve_path(path)
 
     text = p.read_text(encoding="utf-8", errors="replace")
 

@@ -16,6 +16,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from src.utils import source_basename
+
 # ---------------------------------------------------------------------------
 # Page config (must be first Streamlit call)
 # ---------------------------------------------------------------------------
@@ -271,8 +273,7 @@ for entry in st.session_state["chat_history"]:
         for i, chunk in enumerate(res.get("chunks", []), start=1):
             rerank_score = chunk.get("rerank_score", chunk.get("score", 0))
             meta = chunk.get("metadata", {})
-            filename = meta.get("filename", meta.get("source", "unknown"))
-            filename = os.path.basename(filename)
+            filename = source_basename(meta)
             st.markdown(
                 f"**[Source {i}]** `{filename}` · chunk `{meta.get('chunk_index', '?')}` · "
                 f"rerank score: `{rerank_score:.4f}`"

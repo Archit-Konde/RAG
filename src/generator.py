@@ -17,10 +17,9 @@ Source attribution:
 
 from __future__ import annotations
 
-import os
-from typing import Any
-
 import requests
+
+from src.utils import source_basename
 
 
 class LLMGenerator:
@@ -78,7 +77,7 @@ class LLMGenerator:
         context_blocks: list[str] = []
         for i, chunk in enumerate(chunks, start=1):
             meta = chunk.get("metadata", {})
-            filename = self._source_basename(meta)
+            filename = source_basename(meta)
             chunk_idx = meta.get("chunk_index", "?")
             header = f"[Source {i}] ({filename}, chunk {chunk_idx}):"
             context_blocks.append(f"{header}\n{chunk['text']}")
@@ -160,16 +159,6 @@ class LLMGenerator:
         return response.json()
 
     # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _source_basename(meta: dict[str, Any]) -> str:
-        """Extract a human-readable filename from chunk metadata."""
-        raw = meta.get("source", "unknown")
-        return os.path.basename(raw) if raw != "unknown" else "unknown"
-
-    # ------------------------------------------------------------------
     # Source attribution
     # ------------------------------------------------------------------
 
@@ -186,7 +175,7 @@ class LLMGenerator:
         sources = []
         for i, chunk in enumerate(chunks, start=1):
             meta = chunk.get("metadata", {})
-            filename = LLMGenerator._source_basename(meta)
+            filename = source_basename(meta)
 
             # Prefer rerank_score > retrieval score > 0
             score = chunk.get("rerank_score", chunk.get("score", 0.0))

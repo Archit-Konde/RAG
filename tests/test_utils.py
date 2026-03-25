@@ -1,11 +1,13 @@
 """
-Unit tests for src/utils.py — detect_device and top_k_indices.
+Unit tests for src/utils.py — detect_device, top_k_indices, and shared helpers.
 Run with: pytest tests/test_utils.py -v
 """
 
+import tempfile
+
 import numpy as np
 
-from src.utils import detect_device, top_k_indices
+from src.utils import detect_device, move_to_device, resolve_path, source_basename, top_k_indices
 
 # ---------------------------------------------------------------------------
 # detect_device
@@ -94,3 +96,69 @@ def test_top_k_negative_scores():
     result = top_k_indices(scores, 2)
     assert result[0] == 1  # -0.1 is highest
     assert result[1] == 3  # -0.3 is second
+
+
+# ---------------------------------------------------------------------------
+# resolve_path
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_path_existing_file():
+    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
+        f.write(b"hello")
+        tmp = f.name
+    result = resolve_path(tmp)
+    assert result.exists()
+    assert result.is_absolute()
+    result.unlink()  # cleanup
+
+
+def test_resolve_path_missing_file():
+    import pytest
+
+    with pytest.raises(FileNotFoundError, match="File not found"):
+        resolve_path("/nonexistent/path/to/file.txt")
+
+
+# ---------------------------------------------------------------------------
+# source_basename
+# ---------------------------------------------------------------------------
+
+
+def test_source_basename_with_path():
+    meta = {"source": "/home/user/docs/report.pdf"}
+    assert source_basename(meta) == "report.pdf"
+
+
+def test_source_basename_unknown():
+    meta = {"source": "unknown"}
+    assert source_basename(meta) == "unknown"
+
+
+def test_source_basename_missing_key():
+    assert source_basename({}) == "unknown"
+
+
+def test_source_basename_windows_path():
+    meta = {"source": "C:\\Users\\docs\\file.txt"}
+    result = source_basename(meta)
+    assert result == "file.txt"
+
+
+# ---------------------------------------------------------------------------
+# move_to_device
+# ---------------------------------------------------------------------------
+
+
+def test_move_to_device_cpu():
+    import torch
+
+    tensors = {"ids": torch.tensor([1, 2, 3]), "mask": torch.tensor([1, 1, 0])}
+    result = move_to_device(tensors, "cpu")
+    assert all(v.device.type == "cpu" for v in result.values())
+    assert set(result.keys()) == {"ids", "mask"}
+
+
+def test_move_to_device_empty_dict():
+    result = move_to_device({}, "cpu")
+    assert result == {}

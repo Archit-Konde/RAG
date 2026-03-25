@@ -12,9 +12,9 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel
 
-from src.utils import detect_device
+from src.utils import load_hf_model, move_to_device
 
 
 class EmbeddingModel:
@@ -37,13 +37,8 @@ class EmbeddingModel:
         model_name: str = DEFAULT_MODEL,
         device: str | None = None,
     ) -> None:
-        self.device = device or detect_device()
         self.model_name = model_name
-
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
-        self.model.eval()
-        self.model.to(self.device)
+        self.tokenizer, self.model, self.device = load_hf_model(model_name, AutoModel, device)
 
     # ------------------------------------------------------------------
     # Public API
@@ -84,7 +79,7 @@ class EmbeddingModel:
                 max_length=256,
                 return_tensors="pt",
             )
-            encoded = {k: v.to(self.device) for k, v in encoded.items()}
+            encoded = move_to_device(encoded, self.device)
 
             with torch.no_grad():
                 output = self.model(**encoded)

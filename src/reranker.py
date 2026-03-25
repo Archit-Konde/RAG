@@ -20,9 +20,9 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSequenceClassification
 
-from src.utils import detect_device
+from src.utils import load_hf_model, move_to_device
 
 
 class CrossEncoderReranker:
@@ -41,13 +41,8 @@ class CrossEncoderReranker:
         model_name: str = DEFAULT_MODEL,
         device: str | None = None,
     ) -> None:
-        self.device = device or detect_device()
         self.model_name = model_name
-
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name)
-        self.model.eval()
-        self.model.to(self.device)
+        self.tokenizer, self.model, self.device = load_hf_model(model_name, AutoModelForSequenceClassification, device)
 
     # ------------------------------------------------------------------
     # Public API
@@ -126,7 +121,7 @@ class CrossEncoderReranker:
                 max_length=512,
                 return_tensors="pt",
             )
-            encoded = {k: v.to(self.device) for k, v in encoded.items()}
+            encoded = move_to_device(encoded, self.device)
 
             with torch.no_grad():
                 logits = self.model(**encoded).logits
